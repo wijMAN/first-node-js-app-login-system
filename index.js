@@ -4,12 +4,17 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { config } from "dotenv";
+
+config({
+  path: "./data/config.env",
+});
 
 const app = express(); // instead of writing server, app is the convention
 // a one liner to create server
 
 mongoose
-  .connect("mongodb://127.0.0.1:27017", {
+  .connect(process.env.mongo_url, {
     dbName: "userDatabase",
   })
   .then(() => console.log("db connected"))
@@ -39,7 +44,7 @@ let authenticate = async (req, res, next) => {
 
   // if (mail && uname && id) {
   if (id) {
-    const decodedId = jwt.verify(id, "asdfgh");
+    const decodedId = jwt.verify(id, process.env.JWT_Secret);
 
     req.xyz = await userDocument.findById(decodedId.id1);
 
@@ -77,7 +82,7 @@ app.post("/register", async (req, res) => {
     pass1: pass,
   }); // returns a promise
 
-  const userToken = jwt.sign({ id1: user._id }, "asdfgh");
+  const userToken = jwt.sign({ id1: user._id }, process.env.JWT_Secret);
 
   res.cookie("id", userToken, {
     httpOnly: true,
@@ -106,7 +111,7 @@ app.post("/login", async (req, res, next) => {
       message: "Wrong Password, Try again",
     });
   }
-  const userToken = jwt.sign({ id1: user._id }, "asdfgh");
+  const userToken = jwt.sign({ id1: user._id }, process.env.JWT_Secret);
 
   res.cookie("id", userToken, {
     httpOnly: true,
@@ -144,6 +149,6 @@ app.get("/users/all", async (req, res) => {
   res.json({ success: true, users });
 });
 
-app.listen(5000, () => {
+app.listen(process.env.PORT, () => {
   console.log("server started");
 });
